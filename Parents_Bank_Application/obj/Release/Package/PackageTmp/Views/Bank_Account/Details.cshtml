@@ -1,0 +1,318 @@
+﻿@model Parents_Bank_Application.Models.Bank_Account
+
+@{
+    ViewBag.Title = "Details";
+}
+<style type="text/css">
+.legend {
+        list-style: none;
+        float: right;
+}
+.legend li {
+            float: left;
+            margin-right: 10px;
+}
+.legend span {
+            border: 1px solid #ccc;
+            float: left;
+            width: 12px;
+            height: 12px;
+            margin: 2px;
+        }
+.legend .progress-bar-success {
+            background-color: #5cb85c;
+}
+.legend .progress-bar-warning {
+            background-color: #f0ad4e;
+}
+    .InterestCeleb {
+        background-image: url(/Content/images/Confetti.png);
+        background-size: contain;
+    }
+</style>
+<h2>Details</h2>
+<div style="border: solid #D3D3D3; padding: 10px;">
+    <h3 style="background: #F0F0F0; padding: 10px; font-weight:bold">Bank account details
+    </h3>
+    @if (Model.isOwner(User.Identity.Name))
+    {
+        <div style="font-size: small; padding-left: 10px;">
+            @Html.ActionLink("Create a new Account", "Create") |
+            @Html.ActionLink("Edit Account", "Edit", new { Id = Model.Id }) |
+            @Html.ActionLink("Delete Account", "Delete", new { Id = Model.Id })
+        </div>
+    }
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Owner)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Owner)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Recipient)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Recipient)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            Interest Rate
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.InterestRate)
+        </dd>
+        <dt>
+            Account Opening Date
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OpenDate)
+        </dd>
+    </dl>
+</div>
+<hr />
+<div id="AccountStats" style="border: solid #D3D3D3; padding: 10px;">
+    <h3 style="background: #F0F0F0; padding: 10px; font-weight:bold">
+        Principal Amount
+        <span style="float:right">@Model.CurrentBalanceWithoutInterest()</span>
+    </h3>
+    <hr />
+    <h3 style="background: #F0F0F0; padding: 10px; font-weight:bold">
+        Earned Interest Amount
+        <span style="float:right">@Model.YearToDateInterestEarned()</span>
+    </h3>
+    <hr />
+    <h3 style="background: #F0F0F0; padding: 10px; font-weight:bold">
+        Total Balance
+        <span style="float:right">@Model.TotalBalance()</span>
+    </h3>
+    <hr/>
+    <div class="progress">
+        <div id="Principal_@Model.Id" class="progress-bar progress-bar-success" role="progressbar" style="width:80%">
+        </div>
+        <div id="Interest_@Model.Id" class="progress-bar progress-bar-warning" role="progressbar" style="width:10%">
+        </div>
+    </div>
+    <script>
+        var IPer = (@Model.YearToDateInterestEarned()/@Model.TotalBalance())*100;
+        IPer = Math.floor(IPer);
+        var PPer = 100 - IPer;
+        document.getElementById("Principal_@Model.Id").style = "width: " + Math.floor(PPer) + "%;";
+        document.getElementById("Principal_@Model.Id").innerHTML = "<span>Principal</span>";
+        document.getElementById("Interest_@Model.Id").style = "width: " + Math.floor(IPer) + "%;";
+        document.getElementById("Interest_@Model.Id").innerHTML = "<span>Interest</span>";
+
+        if (@Model.YearToDateInterestEarned() > 10) {
+            document.getElementById("AccountStats").className = "InterestCeleb";
+        }
+    </script>
+    <hr />
+</div>
+<hr />
+<div style="border: solid #D3D3D3; padding: 10px;">
+    <h3 style="background: #F0F0F0; padding: 10px; font-weight:bold"> Transactions 
+    </h3>
+@if (Model.isOwner(User.Identity.Name))
+{
+    <div style="font-size: small; padding-left: 10px;">
+            @Html.ActionLink("Create a new Transaction", "Create", "Transactions")
+        </div>
+}
+    <hr/>
+    <table class="table ">
+        <thead>
+            <tr>
+                <th>Transaction Date</th>
+                <th>Amount</th>
+                <th>Note</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in Model.Transactions.OrderByDescending(x => x.TransactionDate))
+            {
+                <tr>
+                    <td>@t.TransactionDate</td>
+                    <td>@t.Amount</td>
+                    <td>@t.Note</td>
+                    <td>
+@if (Model.isOwner(User.Identity.Name))
+{
+                        <span style="float: right; font-size: smaller;">
+                            @Html.ActionLink("Edit", "Edit", new { controller = "Transactions", Id = t.Id }) |
+                            @Html.ActionLink("Details", "Details", new { controller = "Transactions", Id = t.Id }) |
+                            @Html.ActionLink("Delete", "Delete", new { controller = "Transactions", Id = t.Id })
+                        </span>}
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<hr />
+<div>
+    <div style="border: solid #D3D3D3; padding: 10px;">
+        <h3 style="background: #F0F0F0; padding: 10px; font-weight:bold;"> Wishlist 
+        </h3>
+        <div style="font-size: small; padding-left: 10px;">
+            @Html.ActionLink("Create a new Wishlist Item", "Create", "WishList_Item") |
+            @Html.ActionLink("Search for a Wishlist Item", "Index", "WishList_Item") 
+        </div>
+        <hr />
+        @if (ViewBag.ShowAffordable)
+        {
+            <div style="border: solid #D3D3D3; padding: 10px;">
+                <h4 style="font-weight:bold;">Affordable</h4>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Cost</th>
+                            <th>Description</th>
+                            <th>Link</th>
+                            <th>Purchased</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model.Wish_List_Items)
+                        {
+                            if (t.Cost < Model.TotalBalance() || t.Cost == Model.TotalBalance())
+                            {
+                                <tr>
+                                    <td>@t.Cost</td>
+                                    <td>@t.Description</td>
+                                    <td>@t.Link</td>
+                                    <td>@t.Purchased</td>
+                                    <td>
+                                        <span style="float: right; font-size: smaller;">
+                                            @Html.ActionLink("Edit", "Edit", new { controller = "WishList_Item", Id = t.Id }) |
+                                            @Html.ActionLink("Details", "Details", new { controller = "WishList_Item", Id = t.Id })
+                                            @if (Model.isOwner(User.Identity.Name))
+                                            {
+                                            @Html.ActionLink(" | Delete", "Delete", new { controller = "WishList_Item", Id = t.Id })
+                                            }
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">
+                                            <div class="progress">
+                                                <div id="SavingsRem__@t.Id" class="progress-bar progress-bar-success" role="progressbar" style="width:80%">
+                                                </div>
+                                                <div id="AffordableWL_@t.Id" class="progress-bar progress-bar-warning" role="progressbar" style="width:10%">
+                                                </div>
+                                            </div>
+                                            <ul class="legend">
+                                                @{ var Savingleft = Model.TotalBalance() - t.Cost;}
+                                                <li><span id="Legend1Affordable_@t.Id" class="progress-bar-success"></span>$@Savingleft</li>
+                                                <li><span id="Legend2Affordable_@t.Id" class="progress-bar-warning"></span>$@t.Cost</li>
+                                            </ul>
+                                            <!--<span>
+                                                Account Balance 
+                                            </span>
+                                            <span>
+                                                Cost of Item
+                                            </span>-->
+                                            <script>
+                                                var Per = Math.floor((@t.Cost / @Model.TotalBalance()) * 100);
+                                                var remPer = 100 - Per;
+                                                document.getElementById("SavingsRem__@t.Id").style = "width: " + remPer + "%;"
+                                                document.getElementById("SavingsRem__@t.Id").innerHTML = "<span>Savings left after purchase</span>";
+                                                document.getElementById("AffordableWL_@t.Id").style = "width: " + Per + "%;"
+                                                document.getElementById("AffordableWL_@t.Id").innerHTML = "<span>Cost</span>";
+                                            </script>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        <hr/>
+        @if (ViewBag.ShowNonAffordable)
+        {
+            <div style="border: solid #D3D3D3; padding: 10px;">
+                    <h4 style="font-weight:bold;">Not-Affordable</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Cost</th>
+                                <th>Description</th>
+                                <th>Link</th>
+                                <th>Purchased</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in Model.Wish_List_Items)
+                            {
+                                if (t.Cost > Model.TotalBalance())
+                                {
+                                    <tr>
+                                        <td>@t.Cost</td>
+                                        <td>@t.Description</td>
+                                        <td>@t.Link</td>
+                                        <td>@t.Purchased</td>
+                                        <td>
+                                            <span style="float: right; font-size: smaller;">
+                                                @Html.ActionLink("Edit", "Edit", new { controller = "WishList_Item", Id = t.Id }) |
+                                                @Html.ActionLink("Details", "Details", new { controller = "WishList_Item", Id = t.Id })
+@if (Model.isOwner(User.Identity.Name))
+{
+                                                @Html.ActionLink(" | Delete", "Delete", new { controller = "WishList_Item", Id = t.Id })
+}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5">
+                                            <span style="font-weight:bold;">Savings progress</span>
+                                            <div class="progress">
+                                                <div id="@t.Id" class="progress-bar" role="progressbar" aria-valuenow="@Model.CurrentBalanceWithoutInterest()" aria-valuemin="0" aria-valuemax="@t.Cost">
+                                                    <span id="Child_@t.Id" />
+                                                </div>
+                                                <script>
+                                                    var Diff = @t.Cost - @Model.TotalBalance();
+                                                    var RemainingPer = (@Model.TotalBalance()/@t.Cost)*100;
+                                                    if (RemainingPer >= 50){
+                                                        document.getElementById("@t.Id").style = "width: " + Math.floor(RemainingPer) + "%;" +"background-color: green";
+                                                        document.getElementById("Child_@t.Id").innerHTML = Math.floor(RemainingPer) + "% Complete";
+
+                                                    } else {
+                                                        document.getElementById("@t.Id").style = "width: " + Math.floor(RemainingPer) + "%";
+                                                        document.getElementById("Child_@t.Id").innerHTML = Math.floor(RemainingPer) + "% Complete";
+                                                    }
+                                                </script>
+                                            </div>
+                                            <ul class="legend">
+                                                @{ var SavingsReq = t.Cost - Model.TotalBalance(); }
+                                                <li><span ></span>Savings Required: $@SavingsReq</li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                }
+            </div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
